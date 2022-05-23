@@ -1,5 +1,9 @@
 #include "Socket.hpp"
 
+WSV::Socket::Socket()
+{
+}
+
 WSV::Socket::Socket(int domain, int type, int port)
 {
     this->_fd = socket(domain, type, 0);
@@ -25,11 +29,18 @@ WSV::Socket const & WSV::Socket::operator=(WSV::Socket const & rhs)
     if (this != &rhs)
     {
         this->_fd = rhs._fd;
-        
+
+        // this->_address.sin_addr.s_addr = rhs._address.sin_addr.s_addr;
+        // this->_address.sin_family = rhs._address.sin_family;
+        // this->_address.sin_len = rhs._address.sin_len;
+        // this->_address.sin_port = rhs._address.sin_port;
+        // memmove(&this->_address.sin_zero, &rhs._address.sin_zero, 8);
+
         memmove(&_address, &rhs._address, sizeof(_address));
 
         this->_addrlen = rhs._addrlen;
     }
+    return *this;
 }
 
 void WSV::Socket::bind_name()
