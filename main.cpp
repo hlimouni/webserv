@@ -1,6 +1,7 @@
 #include "SimpleServer.hpp"
 
 #define PORT 8080
+#define HELLO "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"
 
 int main()
 {
@@ -14,5 +15,9 @@ int main()
     {
         std::cout << "\n+++++++ Waiting for new connection +++++++++++\n\n";
         sv.accept_req();
+        sv.print_read_msg();
+        sv.write_msg(HELLO);
+        std::cout << "---------------------------Hello message set-------------------------------\n";
+        close(sv.get_fd());
     }
 }
