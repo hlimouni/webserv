@@ -5,8 +5,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <fcntl.h>
+#include <stdexcept>
 
-namespace WSV
+namespace wsv
 {
 	class Socket
 	{
@@ -25,6 +27,7 @@ namespace WSV
 
 		void bind_name();
 		void init_connection();
+		void listen_to_port(int backlog);
 		int  get_fd() const;
 		size_t len() const;
 		struct sockaddr_in const & get_address();
