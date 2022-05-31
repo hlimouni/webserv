@@ -1,7 +1,7 @@
 #include "Socket.hpp"
 #include <unistd.h>
 
-namespace WSV
+namespace wsv
 {
     class SimpleServer
     {

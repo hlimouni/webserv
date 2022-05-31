@@ -1,17 +1,16 @@
 #include "Socket.hpp"
 
-WSV::Socket::Socket()
+wsv::Socket::Socket() : _fd(-1), _addrlen(0)
 {
 }
 
-WSV::Socket::Socket(int domain, int type, int port)
+wsv::Socket::Socket(int domain, int type, int port)
 {
     this->_fd = socket(domain, type, 0);
-    if (this->_fd == 0)
-    {
-        std::cerr << "Coundn't open socket" << '\n';
-        exit(EXIT_FAILURE);
-    }
+    if (this->_fd < 0)
+        throw std::runtime_error("Coundn't open socket");
+    if (fcntl(this->_fd, F_SETFL, O_NONBLOCK) < 0)
+        throw std::runtime_error("Coundn't make socket non-blocking");
     this->_addrlen = sizeof(_address);
     this->_address.sin_family = AF_INET;
     this->_address.sin_addr.s_addr = INADDR_ANY;
@@ -19,12 +18,12 @@ WSV::Socket::Socket(int domain, int type, int port)
     memset(_address.sin_zero, '\0', sizeof (_address.sin_zero));
 }
 
-WSV::Socket::Socket(WSV::Socket const & copy)
+wsv::Socket::Socket(wsv::Socket const & copy)
 {
     *this = copy;
 }
 
-WSV::Socket const & WSV::Socket::operator=(WSV::Socket const & rhs)
+wsv::Socket const & wsv::Socket::operator=(wsv::Socket const & rhs)
 {
     if (this != &rhs)
     {
@@ -43,40 +42,47 @@ WSV::Socket const & WSV::Socket::operator=(WSV::Socket const & rhs)
     return *this;
 }
 
-void WSV::Socket::bind_name()
+void wsv::Socket::bind_name()
 {
     if (bind(_fd, (struct sockaddr *)&_address, _addrlen) < 0)
     {
-        std::cerr << "Coundn't bind the socket" << '\n';
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Coundn't bind the socket");
     }
 }
 
-void WSV::Socket::init_connection()
+void wsv::Socket::init_connection()
 {
     if (connect(_fd, (struct sockaddr *)&_address, _addrlen) < 0)
     {
-        std::cerr << "Coundn't connect the socket" << '\n';
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Coundn't connect the socket");
     }
 
 }
 
-int WSV::Socket::get_fd() const
+void wsv::Socket::listen_to_port(int backlog)
+{
+    if (listen(this->_fd, backlog) < 0)
+    {
+        throw std::runtime_error("Socket failed to listen to port");
+    }
+
+}
+
+int wsv::Socket::get_fd() const
 {
     return this->_fd;
 }
 
-struct sockaddr_in const & WSV::Socket::get_address()
+struct sockaddr_in const & wsv::Socket::get_address()
 {
     return this->_address;
 }
 
-size_t WSV::Socket::len() const
+size_t wsv::Socket::len() const
 {
     return this->_addrlen;
 }
 
-WSV::Socket::~Socket()
+wsv::Socket::~Socket()
 {
 }
