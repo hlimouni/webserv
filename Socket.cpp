@@ -73,7 +73,7 @@ int wsv::Socket::get_fd() const
     return this->_fd;
 }
 
-struct sockaddr_in const & wsv::Socket::get_address()
+struct sockaddr_in const & wsv::Socket::get_address() const
 {
     return this->_address;
 }

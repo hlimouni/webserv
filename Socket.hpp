@@ -30,8 +30,7 @@ namespace wsv
 		void listen_to_port(int backlog);
 		int  get_fd() const;
 		size_t len() const;
-		struct sockaddr_in const & get_address();
-		
+		struct sockaddr_in const & get_address() const;
 	};
 }
 

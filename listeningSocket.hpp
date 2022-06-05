@@ -2,8 +2,9 @@
 #define __LISTENINGSOCKET_HPP
 
 #include "Socket.hpp"
+#include "ReuseSocket.hpp"
 
-class listeningSocket : public wsv::Socket
+class listeningSocket : public ReuseSocket
 {
 
 private:
@@ -12,9 +13,6 @@ private:
 public:
     listeningSocket(int domain, int type, int port);
     ~listeningSocket();
-
 };
-
-
 
 #endif

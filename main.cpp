@@ -14,6 +14,7 @@ int main()
     {
         std::cout << "\n+++++++ Waiting for new connection +++++++++++\n\n";
         sv.accept_req();
+        
         sv.print_read_msg();
         sv.write_msg(HELLO);
         std::cout << "---------------------------Hello message set-------------------------------\n";

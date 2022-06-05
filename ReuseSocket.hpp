@@ -14,9 +14,6 @@ private:
 public:
     ReuseSocket(int domain, int type, int port);
     ~ReuseSocket();
-
 };
-
-
 
 #endif
