@@ -13,7 +13,6 @@ void wsv::SimpleServer::listen_for_reqs(int backlog)
         std::cerr << "server couldn't listen to port" << '\n';
         exit(EXIT_FAILURE);
     }
-
 }
 
 void wsv::SimpleServer::accept_req()
