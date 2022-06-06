@@ -3,7 +3,6 @@
 SocketsPool::SocketsPool()
 {
     _timeout = (struct timeval){.tv_sec = 1, .tv_usec = 0};
-    FD_ZERO(&this->_fdPool);
     FD_ZERO(&this->_readFds);
     FD_ZERO(&this->_writeFds);
     FD_ZERO(&this->_exepFds);
@@ -34,14 +33,14 @@ int SocketsPool::getMaxFd() const
 
 bool SocketsPool::isReadable(wsv::Socket const & sock)
 {
-    if (FD_ISSET(sock.get_fd(), &this->_Current_readSet))
+    if (FD_ISSET(sock.get_fd(), &this->_readFds))
         return true;
     return false;
 }
 
 bool SocketsPool::isWriteable(wsv::Socket const & sock)
 {
-    if (FD_ISSET(sock.get_fd(), &this->_Current_writeSet))
+    if (FD_ISSET(sock.get_fd(), &this->_writeFds))
         return true;
     return false;
 }
@@ -62,17 +61,19 @@ void SocketsPool::initSets(std::set<listeningSocket> listenSockets, std::list<cl
     for (std::list<clientData>::iterator it_client = clients.begin(); it_client != clients.end(); it_client++)
     {
         if ((*it_client).GetSentBytes() < (*it_client).GetTotalBytes())
-            FD_SET((*it_client).GetSocket(), &_writeFds);
-            addToWrite(*it_client.)
+            // FD_SET((*it_client).GetSocketFd(), &_writeFds);
+            addToWrite((*it_client).GetSocket());
         else
-            FD_SET((*it_client).GetSocket(), &_readFds);
-        FD_SET((*it_client).GetSocket(), &_exepFds);
+            // FD_SET((*it_client).GetSocketFd(), &_readFds);
+			addToRead((*it_client).GetSocket());
+        // FD_SET((*it_client).GetSocketFd(), &_exepFds);
+		addToExept((*it_client).GetSocket());
     }
 }
 
 int SocketsPool::checkActivity()
 {
-    int activity = select(getMaxFd() + 1, &_Current_readSet, &_Current_writeSet, &_Current_excepSet,
+    int activity = select(getMaxFd() + 1, &_readFds, &_writeFds, &_exepFds,
                     &this->_timeout);
     return activity;
 }
