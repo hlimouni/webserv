@@ -12,13 +12,13 @@ class SocketsPool
 
 private:
     std::set<int, std::greater<int> > _descriptors;
-    fd_set _fdPool;
+    // fd_set _fdPool;
     fd_set _readFds;
     fd_set _writeFds;
     fd_set _exepFds;
-    fd_set _Current_readSet;
-    fd_set _Current_writeSet;
-    fd_set _Current_excepSet;
+    // fd_set _Current_readSet;
+    // fd_set _Current_writeSet;
+    // fd_set _Current_excepSet;
     struct timeval _timeout;
 
 public:

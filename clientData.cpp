@@ -27,12 +27,12 @@ int clientData::GetSentBytes()
 
 void clientData::SetSocket(int s)
 {
-    _acceptedSocket = s;
+    _acceptedSocketFd = s;
 }
 
 int clientData::GetSocketFd()
 {
-    return _acceptedSocket;
+    return _acceptedSocketFd;
 }
 
 void clientData::SetBuffer(char *szBuffer)
@@ -50,19 +50,19 @@ char *clientData::GetBuffer()
     return _szBuffer;
 }
 // Constructor
-clientData::clientData(int acceptedSocketfd) : _totalBytes(0), _sentBytes(0)
-{
-    _acceptedSocket = acceptedSocketfd;
-    bzero(_szBuffer, MAX_BUFFER_LEN);
-}
-clientData::clientData(wsv::Socket const & sock) : _totalBytes(0), _sentBytes(0)
+// clientData::clientData(int acceptedSocketfd) : _totalBytes(0), _sentBytes(0)
+// {
+//     _acceptedSocketFd = acceptedSocketfd;
+//     bzero(_szBuffer, MAX_BUFFER_LEN);
+// }
+clientData::clientData(wsv::Socket const & sock) : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock)
 {
     
-    _acceptedSocket = sock.get_fd();
+    _acceptedSocketFd = sock.get_fd();
     bzero(_szBuffer, MAX_BUFFER_LEN);
 }
 // destructor
 clientData::~clientData()
 {
-    close(_acceptedSocket);
+    close(_acceptedSocketFd);
 }

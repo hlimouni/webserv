@@ -1,7 +1,10 @@
-#include "SingleServer.hpp"
+#include "WebServer.hpp"
 
-SingleServer::SingleServer(serverData & data)
+WebServer::WebServer(configParser & parseData)
 {
+	std::vector<serverData>::iterator serv_it = parseData.getServers().begin();
+
+	for ()
     this->_host = data.getHost();
 
     std::set<int> ports = data.getPorts();
@@ -27,19 +30,6 @@ SingleServer::SingleServer(serverData & data)
     }
 }
 
-void SingleServer::acceptNewConnection(listeningSocket const & sock, )
-{
-    int addrlen = sock.len();
-    int acceptedSocket = accept(sock.get_fd(), (struct sockaddr *)&sock.get_address(), (socklen_t *)&addrlen);
-    if (acceptedSocket < 0)
-        throw std::runtime_error("Counldn't accept connection");
-    if (fcntl(acceptedSocket, F_SETFL, O_NONBLOCK) < 0)
-        throw std::runtime_error("Couldn't make accepted socket non blocking");
-    // clientData newClient(acceptedSocket);
-    this->_clients.push_back(clientData(sock));
-
-}
-
-SingleServer::~SingleServer()
+WebServer::~WebServer()
 {
 }

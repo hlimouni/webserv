@@ -4,6 +4,7 @@
 #include "listeningSocket.hpp"
 #define MAX_BUFFER_LEN 1024
 #include <unistd.h>
+#include <string.h>
 
 class clientData
 {
@@ -11,8 +12,8 @@ class clientData
 private:
     int _totalBytes;
     int _sentBytes;
-    wsv::Socket 
-    int _acceptedSocket;
+    wsv::Socket _acceptedSocket;
+    int _acceptedSocketFd;
     char _szBuffer[MAX_BUFFER_LEN];
 
 public:
@@ -30,7 +31,8 @@ public:
     void GetBuffer(char *szBuffer);
     char *GetBuffer();
     // Constructor
-    clientData(int acceptedSocketfd);
+	clientData(wsv::Socket const & sock);
+    // clientData(int acceptedSocketfd);
     // destructor
     ~clientData();
 };
