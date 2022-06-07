@@ -45,6 +45,13 @@ bool SocketsPool::isWriteable(wsv::Socket const & sock)
     return false;
 }
 
+bool SocketsPool::isExepted(wsv::Socket const & sock)
+{
+    if (FD_ISSET(sock.get_fd(), &this->_exepFds))
+        return true;
+    return false;
+}
+
 void SocketsPool::initSets(std::set<listeningSocket> listenSockets, std::list<clientData> clients)
 {
     FD_ZERO(&_readFds);
