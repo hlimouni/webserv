@@ -5,6 +5,7 @@
 #include "sys/select.h"
 #include <set>
 #include <list>
+#include <map>
 #include "clientData.hpp"
 
 class SocketsPool
@@ -26,7 +27,8 @@ public:
     SocketsPool(listeningSocket const &listenSock);
     ~SocketsPool();
 
-    void initSets(std::set<listeningSocket> listenSockets, std::list<clientData> clients);
+    void initSets(std::map< std::string, std::set<listeningSocket> > hostSockets, std::list<clientData> clients);
+    // void initSets(std::set<listeningSocket> listenSockets, std::list<clientData> clients);
     void addToRead(wsv::Socket const & sock);
     void addToWrite(wsv::Socket const & sock);
     void addToExept(wsv::Socket const & sock);
