@@ -36,6 +36,7 @@ public:
     void removeFromWrite(wsv::Socket const & sock);
     bool isReadable(wsv::Socket const & sock);
     bool isWriteable(wsv::Socket const & sock);
+    bool isExepted(wsv::Socket const & sock);
     int getMaxFd() const;
     int checkActivity();
 
