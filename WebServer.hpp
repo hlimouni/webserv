@@ -13,16 +13,18 @@ class WebServer
 {
 
 private:
-	std::map<std::string, std::set<listeningSocket>> _hostSockets;
-    // std::set<listeningSocket> _listenSockets;
+	std::map< std::string, std::set<listeningSocket> > _hostSockets;
+    std::set<listeningSocket> _listenSockets;
     std::list<clientData>     _clients;
     std::string               _host;
     SocketsPool               _pool;
 
 public:
-	WebServer(configParser & parseData);
+	WebServer(configParser const & parseData);
 	~WebServer();
-};
 
+    void startServer();
+    void acceptNewConnection(listeningSocket const & sock);
+};
 
 #endif
