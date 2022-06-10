@@ -98,6 +98,11 @@ void SocketsPool::removeFromRead(wsv::Socket const & sock)
     FD_CLR(sock.get_fd(), &this->_readFds);
 }
 
+void SocketsPool::removeFromWrite(wsv::Socket const & sock)
+{
+    FD_CLR(sock.get_fd(), &this->_writeFds);
+}
+
 SocketsPool::~SocketsPool()
 {
 }
