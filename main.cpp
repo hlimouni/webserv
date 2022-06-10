@@ -1,4 +1,5 @@
 #include "SimpleServer.hpp"
+#include "WebServer.hpp"
 
 #define PORT 8080
 #define HELLO "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"
@@ -20,4 +21,6 @@ int main()
         std::cout << "---------------------------Hello message set-------------------------------\n";
         close(sv.get_fd());
     }
+
+
 }
