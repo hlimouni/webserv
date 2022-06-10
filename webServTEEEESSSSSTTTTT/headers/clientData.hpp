@@ -14,6 +14,7 @@ private:
     int _sentBytes;
     wsv::Socket _acceptedSocket;
     int _acceptedSocketFd;
+    int _listenSocketFd;
     char _szBuffer[MAX_BUFFER_LEN];
 
 public:
@@ -30,8 +31,10 @@ public:
     void SetBuffer(char *szBuffer);
     void GetBuffer(char *szBuffer);
     char *GetBuffer();
+    int GetListenFd();
     // Constructor
 	clientData(wsv::Socket const & sock);
+	clientData(wsv::Socket const & sock, wsv::Socket const & listn);
     // clientData(int acceptedSocketfd);
     // destructor
     ~clientData();
