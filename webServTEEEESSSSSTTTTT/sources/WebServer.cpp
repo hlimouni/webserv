@@ -8,7 +8,6 @@ WebServer::WebServer(configParser const &parseData)
 
     for (it = serverVect.begin(); it != serverVect.end(); ++it)
     {
-
         std::set<int> ports = (*it).getPorts();
         std::list<listeningSocket> sockets;
         for (std::set<int>::iterator it = ports.begin(); it != ports.end(); it++)
@@ -16,6 +15,7 @@ WebServer::WebServer(configParser const &parseData)
             listeningSocket sock(AF_INET, SOCK_STREAM, *it);
             sockets.push_back(sock);
             _listenSockets.push_back(sock);
+            _handeledFds.insert(std::make_pair(sock.get_fd(), false));
             std::cout << "listening socket created: " << _listenSockets.back().get_fd() << std::endl;
         }
         this->_hostSockets.insert(std::make_pair((*it).getHost(), sockets));
@@ -47,10 +47,12 @@ void WebServer::startServer()
             std::list<listeningSocket>::iterator sock_it;
             for (sock_it = _listenSockets.begin(); sock_it != _listenSockets.end(); ++sock_it)
             {
-                if (_pool.isReadable(*sock_it))
+                if (_pool.isReadable(*sock_it) && _handeledFds.find((*sock_it).get_fd())->second == false)
                 {
                     acceptNewConnection(*sock_it);
                     std::cout << "New Accepted client socket fd: " << this->_clients.back().GetSocketFd() << std::endl;
+                    _pool.addToWrite(*sock_it);
+                    _handeledFds.find((*sock_it).get_fd())->second = true;
                 }
                 if (_pool.isExepted(*sock_it))
                     std::cerr << "Error while accepting Socket\n";
@@ -107,15 +109,23 @@ void WebServer::startServer()
                             _clients.erase(cln_it);
                             continue;
                         }
+                             _handeledFds.find(currClient.GetListenFd())->second = false;
+                            close(currClient.GetSocketFd());
+                            std::cout << currClient.GetSocketFd() << " is closed\n";
+                            _pool.removeFromRead(currClient.GetSocket());
+                            _pool.removeFromWrite(currClient.GetSocket());
+                            _clients.erase(cln_it);
+                            continue;
                         if (nBytes == currClient.GetTotalBytes() - currClient.GetSentBytes())
                         {
                             currClient.SetTotalBytes(0);
                             currClient.SetSentBytes(0);
+
                         }
                         else
                             currClient.IncrSentBytes(nBytes);
-                        close(currClient.GetSocketFd());
-                        _pool.removeFromRead(currClient.GetSocket());
+                        // close(currClient.GetSocketFd());
+                        // _pool.removeFromRead(currClient.GetSocket());
                     }
                     // exit(0);
                 }
@@ -134,6 +144,7 @@ void WebServer::startServer()
         }
 
     }
+
     //closing the open sockets (to be implemented in the destructor for socketsPool)
 }
 
@@ -154,7 +165,7 @@ void WebServer::acceptNewConnection(listeningSocket const & sock )
     std::cout << "accepted socket: " << acceptedSockObj.get_fd() << '\n';
 
     // acceptedObj.set_fd(acceptedSocket);
-    this->_clients.push_back(clientData(acceptedSockObj));
+    this->_clients.push_back(clientData(acceptedSockObj, sock));
 }
 
 WebServer::~WebServer()
