@@ -16,6 +16,7 @@ private:
 	// std::map< std::string, std::set<listeningSocket> > _hostSockets;
 	std::map< std::string, std::list<listeningSocket> > _hostSockets;
     // std::set<listeningSocket> _listenSockets;
+    std::map< int, bool> _handeledFds;
     std::list<listeningSocket> _listenSockets;
     std::list<clientData>     _clients;
     std::string               _host;
