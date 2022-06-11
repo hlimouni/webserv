@@ -3,10 +3,10 @@
 
 WebServer::WebServer(configParser const &parseData)
 {
-    std::vector<serverData> serverVect = parseData.getServers();
+    _serverVect = parseData.getServers();
     std::vector<serverData>::iterator it;
 
-    for (it = serverVect.begin(); it != serverVect.end(); ++it)
+    for (it = _serverVect.begin(); it != _serverVect.end(); ++it)
     {
         std::set<int> ports = (*it).getPorts();
         std::list<listeningSocket> sockets;
@@ -15,25 +15,13 @@ WebServer::WebServer(configParser const &parseData)
             listeningSocket sock(AF_INET, SOCK_STREAM, *it);
             sockets.push_back(sock);
             _listenSockets.push_back(sock);
-            _handeledFds.insert(std::make_pair(sock.get_fd(), false));
+            _pending.insert(std::make_pair(sock.get_fd(), false));
             std::cout << "listening socket created: " << _listenSockets.back().get_fd() << std::endl;
         }
         this->_hostSockets.insert(std::make_pair((*it).getHost(), sockets));
+        // this->_hostMaxClientSize.insert(std::make_pair((*it).getHost(), (*it).getClientMaxBodySize()));
     }
     this->startServer();
-    // while (true)
-    // {
-    //     int activity = _pool.checkActivity();
-    //     if (activity > 0)
-    //     {
-    //         std::set<listeningSocket>::iterator sock_it;
-    //         for (sock_it = _listenSockets.begin(); sock_it != _listenSockets.end(); sock_it++)
-    //         {
-    //             if (_pool.isReadable(*sock_it) == true)
-    //                 acceptNewConnection(*sock_it);
-    //         }
-    //     }
-    // }
 }
 
 void WebServer::startServer()
@@ -47,12 +35,12 @@ void WebServer::startServer()
             std::list<listeningSocket>::iterator sock_it;
             for (sock_it = _listenSockets.begin(); sock_it != _listenSockets.end(); ++sock_it)
             {
-                if (_pool.isReadable(*sock_it) && _handeledFds.find((*sock_it).get_fd())->second == false)
+                if (_pool.isReadable(*sock_it) && _pending.find((*sock_it).get_fd())->second == false)
                 {
                     acceptNewConnection(*sock_it);
                     std::cout << "New Accepted client socket fd: " << this->_clients.back().GetSocketFd() << std::endl;
                     _pool.addToWrite(*sock_it);
-                    _handeledFds.find((*sock_it).get_fd())->second = true;
+                    _pending.find((*sock_it).get_fd())->second = true;
                 }
                 if (_pool.isExepted(*sock_it))
                     std::cerr << "Error while accepting Socket\n";
@@ -79,6 +67,7 @@ void WebServer::startServer()
                         _clients.erase(cln_it);
                         continue;
                     }
+                    currClient.GetBuffer()[nBytes] = 0;
                     currClient.SetTotalBytes(nBytes);
                     currClient.SetSentBytes(0);
                     // std::cout << "The following message was recieved: " << currClient.GetBuffer() << '\n';
@@ -109,21 +98,21 @@ void WebServer::startServer()
                             _clients.erase(cln_it);
                             continue;
                         }
-                             _handeledFds.find(currClient.GetListenFd())->second = false;
-                            close(currClient.GetSocketFd());
-                            std::cout << currClient.GetSocketFd() << " is closed\n";
-                            _pool.removeFromRead(currClient.GetSocket());
-                            _pool.removeFromWrite(currClient.GetSocket());
-                            _clients.erase(cln_it);
-                            continue;
-                        if (nBytes == currClient.GetTotalBytes() - currClient.GetSentBytes())
-                        {
-                            currClient.SetTotalBytes(0);
-                            currClient.SetSentBytes(0);
+                        _pending.find(currClient.GetListenFd())->second = false;
+                        close(currClient.GetSocketFd());
+                        std::cout << currClient.GetSocketFd() << " is closed\n";
+                        _pool.removeFromRead(currClient.GetSocket());
+                        _pool.removeFromWrite(currClient.GetSocket());
+                        _clients.erase(cln_it);
+                        // continue;
+                        // if (nBytes == currClient.GetTotalBytes() - currClient.GetSentBytes())
+                        // {
+                        //     currClient.SetTotalBytes(0);
+                        //     currClient.SetSentBytes(0);
 
-                        }
-                        else
-                            currClient.IncrSentBytes(nBytes);
+                        // }
+                        // else
+                        //     currClient.IncrSentBytes(nBytes);
                         // close(currClient.GetSocketFd());
                         // _pool.removeFromRead(currClient.GetSocket());
                     }
@@ -163,9 +152,30 @@ void WebServer::acceptNewConnection(listeningSocket const & sock )
     acceptedSockObj.set_address(clientAddress);
     acceptedSockObj.set_len(addrlen);
     std::cout << "accepted socket: " << acceptedSockObj.get_fd() << '\n';
-
     // acceptedObj.set_fd(acceptedSocket);
     this->_clients.push_back(clientData(acceptedSockObj, sock));
+}
+
+bool WebServer::isRequestValid(clientData const & client)
+{
+    wsv::Socket clientSock = client.GetSocket();
+	for(std::vector<serverData>::iterator iter = this->_serverVect.begin(); iter != this->_serverVect.end(); iter++)
+	{
+		if (iter->getHost() == inet_ntoa(clientSock.get_address().sin_addr))
+		{
+			std::set<int> ports = iter->getPorts();
+			for(std::set<int>::iterator port_it = ports.begin(); port_it != ports.end(); port_it++)
+			{
+				if (*port_it == ntohs(clientSock.get_address().sin_port))
+				{
+					// this->_respServer_ = (*iter);
+					// this->_respPort_  = *port_it;
+					// this->_clientMaxBodyS_ = this->_respServer_.getClientMaxBodySize() * 1024 * 1024;
+					break;
+				}
+			}
+		}
+	}
 }
 
 WebServer::~WebServer()
