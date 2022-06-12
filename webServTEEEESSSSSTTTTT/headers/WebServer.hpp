@@ -35,6 +35,8 @@ public:
 
     void startServer();
     void acceptNewConnection(listeningSocket const & sock);
+    bool recvRequest(std::list<clientData>::iterator const & cln_it);
+    bool sendResponse(std::list<clientData>::iterator const & cln_it);
     bool isRequestValid(clientData const & client);
 };
 

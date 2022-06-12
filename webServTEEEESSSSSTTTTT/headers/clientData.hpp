@@ -1,8 +1,10 @@
 #ifndef __CLIENTDATA_HPP
 #define __CLIENTDATA_HPP
 
-#include "../headers/listeningSocket.hpp"
-#include "../headers/configParser.hpp"
+#include "listeningSocket.hpp"
+#include "configParser.hpp"
+#include "HttpRequest.hpp"
+#include "serverData.hpp"
 #define MAX_BUFFER_LEN 1024
 #include <unistd.h>
 #include <string.h>
@@ -16,11 +18,19 @@ private:
     wsv::Socket _acceptedSocket;
     int _acceptedSocketFd;
     int _listenSocketFd;
+    size_t _maxBodySize;
+    serverData _serverData;
+    HttpRequest _request;
     char _szBuffer[MAX_BUFFER_LEN];
 
 public:
     // Get/Set calls
     void SetTotalBytes(int n);
+
+    void SetRequest(HttpRequest const & req);
+    HttpRequest const & GetRequest() const;
+
+    serverData GetServerData() const;
 
     int GetTotalBytes() const;
     void SetSentBytes(int n);
@@ -32,10 +42,13 @@ public:
     void SetBuffer(char *szBuffer);
     void GetBuffer(char *szBuffer);
     char *GetBuffer() const;
+    std::string GetStringBuffer() const;
+    size_t GetMaxBodySize() const;
     int GetListenFd() const;
     // Constructor
 	clientData(wsv::Socket const & sock);
 	clientData(wsv::Socket const & sock, wsv::Socket const & listn);
+	clientData(wsv::Socket const & sock, wsv::Socket const & listn, serverData & data);
     // clientData(int acceptedSocketfd);
     // destructor
     ~clientData();
