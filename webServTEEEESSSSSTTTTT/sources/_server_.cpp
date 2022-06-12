@@ -224,12 +224,11 @@ bool	webServer::_handleRequest_(std::string& _buff, int _acceptedS_)
 		{
 			size_t _bodySize_ = std::stoi(_reqHeaders_.substr((int)(_reqHeaders_.find("Content-Length: ")) + 16));
 			std::string _reqBody_ = _buff.substr(_buff.find(D_CRLF) + 4);
-			
+	
 			if (_bodySize_ > (size_t)this->_clientMaxBodyS_)
 				return (true);
 			else if (_reqBody_.length() < _bodySize_)
 				return (false);
-			
 		}
 		return (true);
 	}
