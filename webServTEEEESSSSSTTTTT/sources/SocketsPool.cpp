@@ -18,6 +18,7 @@ void SocketsPool::addToRead(wsv::Socket const & sock)
 void SocketsPool::addToWrite(wsv::Socket const & sock)
 {
     FD_SET(sock.get_fd(), &this->_writeFds);
+    std::cout << "socket added to write: " << sock.get_fd() << "\n";
     this->_descriptors.insert(sock.get_fd());
 }
 
@@ -46,8 +47,13 @@ bool SocketsPool::isReadable(wsv::Socket const & sock)
 
 bool SocketsPool::isWriteable(wsv::Socket const & sock)
 {
+    std::cout << "checking writeability of: " << sock.get_fd() << std::endl;
     if (FD_ISSET(sock.get_fd(), &this->_writeFds))
+    {
+        std::cout << "it is writeable\n";
         return true;
+    }
+    std::cout << "not writeable\n";
     return false;
 }
 

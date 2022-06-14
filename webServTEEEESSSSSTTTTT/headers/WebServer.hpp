@@ -6,6 +6,7 @@
 #include "../headers/configParser.hpp"
 #include "../headers/clientData.hpp"
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 #include <set>
 #include <list>
 #include <map>
@@ -23,7 +24,7 @@ private:
     // std::map< std::string, int> _hostMaxClientSize;
     // std::set<listeningSocket> _listenSockets;
     std::vector<serverData> _serverVect;
-    std::map< int, bool> _pending;
+    // std::map< int, bool> _pending;
     std::list<listeningSocket> _listenSockets;
     std::list<clientData>     _clients;
     std::string               _host;

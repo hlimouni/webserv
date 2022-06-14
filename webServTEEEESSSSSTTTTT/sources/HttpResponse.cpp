@@ -322,6 +322,7 @@ std::string HttpResponse::generateHeader(unsigned int const &status_code, unsign
     std::string header;
     header += generateStartLine(status_code) + CRLF_Combination;
     header += "Content-Type: " + content_type + CRLF_Combination;
+    header += "Connection: keep-alive" + CRLF_Combination;
     header += "Content-Lenght: " + std::to_string(body_lenght) + CRLF_Combination;
     header += "Server: " + __server;
     return header;
@@ -433,7 +434,8 @@ std::string HttpResponse::generateResponse(unsigned int const code_status, std::
 std::string HttpResponse::ResponseOK() const
 {
     std::string body = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>Welcome to webserv!</title> \r\n</head> \r\n<body>\r\n<center><h1>Welcome to webserv</h1></center>\r\n<hr><center><p>webserv/1.0</p></center>\r\n</body>\r\n</html>\r\n";
-    std::string const header = "HTTP/1.1 200 OK" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8\r\nContent-Length: " + std::to_string(body.length()) + "\r\nConnection: Closed\r\nServer: webserv/1.0\r\nDate: " + getLocalTime();
+    std::string const header = "HTTP/1.1 200 OK" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8\r\nContent-Length: " + std::to_string(body.length()) + "\r\nConnection: keep-alive\r\nkeep-alive: max=6, timeout=120\r\nServer: webserv/1.0\r\nDate: " + getLocalTime();
+    // std::string const header = "HTTP/1.1 200 OK" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8\r\nContent-Length: " + std::to_string(body.length()) + "\r\nConnection: Closed\r\nServer: webserv/1.0\r\nDate: " + getLocalTime();
 
     return (header + CRLF_Combination + CRLF_Combination + body);
 }
