@@ -41,7 +41,7 @@ void WebServer::startServer()
                 if (_pool.isReadable(*sock_it) /* _pending.find((*sock_it).get_fd())->second == false*/)
                 {
                     acceptNewConnection(*sock_it);
-                    std::cout << "New Accepted client socket fd: " << this->_clients.back().GetSocketFd() << std::endl;
+                    // std::cout << "New Accepted client socket fd: " << this->_clients.back().GetSocketFd() << std::endl;
                     // _pool.addToWrite(*sock_it);
                     // _pending.find((*sock_it).get_fd())->second = true;
                 }
@@ -137,6 +137,7 @@ void WebServer::startServer()
                     std::cerr << "Error on socket\n";
                     _clients.erase(cln_it);
                 }
+                // sleep(1);
             }
         }
         else if (activity < 0)
@@ -154,8 +155,10 @@ void WebServer::startServer()
 bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
 {
     clientData & currClient = *cln_it;
-    std::cout << "Readable current socket: " << currClient.GetSocketFd() << '\n';
+    // std::cout << "Readable current socket: " << currClient.GetSocketFd() << '\n';
     // char buff[MAX_BUFFER_LEN];
+    // if (_pool.isWriteable(currClient.GetSocket()))
+    //     return true;
     int nBytes = recv(currClient.GetSocketFd(), currClient.GetBuffer(), MAX_BUFFER_LEN, 0);
     // int nBytes = recv(currClient.GetSocketFd(), buff, MAX_BUFFER_LEN, 0);
     if (nBytes <= 0)
@@ -166,13 +169,14 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
             // std::cerr << "Couldn't receive socket data\n";
         }
         // _clients.erase(cln_it);
+        // return true;
         return false;
     }
     currClient.GetBuffer()[nBytes] = 0;
-    std::cout << "The following message was recieved: " << currClient.GetBuffer() << '\n';
+    // std::cout << "The following message was recieved: " << currClient.GetBuffer() << '\n';
     currClient.SetTotalBytes(nBytes);
     currClient.SetSentBytes(0);
-    _pool.addToWrite(currClient.GetSocket());
+    // _pool.addToWrite(currClient.GetSocket());
 
     if (this->isRequestValid(currClient))
     {
@@ -190,7 +194,7 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
 bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
 {
     clientData & currClient = *cln_it;
-    std::cout << currClient.GetSocketFd() << "is writable\n";
+    // std::cout << currClient.GetSocketFd() << "is writable\n";
     int nBytes(0);
     // std::cout << "Total Bytes: " << currClient.GetTotalBytes() << std::endl;
     // std::cout << "Sent Bytes: " << currClient.GetSentBytes() << std::endl;
@@ -206,8 +210,8 @@ bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
         // nBytes = send(currClient.GetSocketFd(),
         //             HELLO,
         //             MAX_BUFFER_LEN, 0);
-        std::cout << "message send:\n";
-        std::cout << respString.substr(0, 200) << "\n";
+        // std::cout << "message send:\n";
+        // std::cout << respString.substr(0, 200) << "\n";
         if (nBytes < 0)
         {
             std::cerr << "Couldnt's send data\n";
@@ -216,20 +220,14 @@ bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
         }
         // _pending.find(currClient.GetListenFd())->second = false;
 
-        /*
+
         close(currClient.GetSocketFd());
-        std::cout << currClient.GetSocketFd() << " is closed\n";
+        // std::cout << currClient.GetSocketFd() << " is closed\n";
         _pool.removeFromRead(currClient.GetSocket());
         _pool.removeFromWrite(currClient.GetSocket());
         // _clients.erase(cln_it);
         return false;
-        */
 
-
-
-
-        currClient.SetTotalBytes(0);
-        currClient.SetSentBytes(0);
         // continue;
         // if (nBytes == currClient.GetTotalBytes() - currClient.GetSentBytes())
         // {
@@ -249,7 +247,7 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
     sockaddr_in clientAddress;
     size_t addrlen = sizeof(clientAddress);
     int acceptedSocket = accept(sock.get_fd(), (struct sockaddr *)&clientAddress, (socklen_t *)&addrlen);
-    std::cout << acceptedSocket << "\n";
+    // std::cout << acceptedSocket << "\n";
     if (acceptedSocket < 0)
         throw std::runtime_error("Counldn't accept connection");
     if (fcntl(acceptedSocket, F_SETFL, O_NONBLOCK) < 0)
@@ -259,32 +257,32 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
     // int yes = 1;
     // if (setsockopt(acceptedSocket, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int)) < 0)
     //     throw std::runtime_error("Couldn't set keep-alive option for socket");
-    int yes = 1;
-    if (setsockopt(
-        acceptedSocket, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int)) == -1)
-        throw std::runtime_error("keepalive");
+    // int yes = 1;
+    // if (setsockopt(
+    //     acceptedSocket, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int)) == -1)
+    //     throw std::runtime_error("keepalive");
 
     // int idle = 1;
     // if (setsockopt(
     //     acceptedSocket, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(int)) == -1)
     //     throw std::runtime_error("keep-alive");
 
-    int interval = 1;
-    if (setsockopt(
-        acceptedSocket, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(int)) == -1)
-        throw std::runtime_error("keep-alive");
+    // int interval = 1;
+    // if (setsockopt(
+    //     acceptedSocket, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(int)) == -1)
+    //     throw std::runtime_error("keep-alive");
 
-    int maxpkt = 10;
-    if (setsockopt(
-        acceptedSocket, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int)) == -1)
-        throw std::runtime_error("keep-alive");
+    // int maxpkt = 10;
+    // if (setsockopt(
+    //     acceptedSocket, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int)) == -1)
+    //     throw std::runtime_error("keep-alive");
 
 
     wsv::Socket acceptedSockObj;
     acceptedSockObj.set_fd(acceptedSocket);
     acceptedSockObj.set_address(clientAddress);
     acceptedSockObj.set_len(addrlen);
-    std::cout << "accepted socket: " << acceptedSockObj.get_fd() << '\n';
+    // std::cout << "accepted socket: " << acceptedSockObj.get_fd() << '\n';
 
     for(std::vector<serverData>::iterator iter = this->_serverVect.begin();
         iter != this->_serverVect.end();
@@ -299,13 +297,14 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
 				if (*port_it == ntohs(sock.get_address().sin_port))
 				{
                     this->_clients.push_back(clientData(acceptedSockObj, sock, *iter));
-                    std::cout << "New Client Added to clients list\n";
+                    // std::cout << "New Client Added to clients list\n";
+                    // _pool.addToRead(acceptedSockObj);
 					break;
 				}
-                else
-                {
-                    std::cout << *port_it << " != " << ntohs(sock.get_address().sin_port) << '\n';
-                }
+                // else
+                // {
+                //     std::cout << *port_it << " != " << ntohs(sock.get_address().sin_port) << '\n';
+                // }
 			}
 		// }
 	}
