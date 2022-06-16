@@ -98,14 +98,14 @@ std::string clientData::GetStringBuffer() const
     return std::string(_szBuffer);
 }
 
-void clientData::SetRequest(HttpRequest const & req)
+void clientData::SetResponse(std::string const & resp)
 {
-    this->_request = req;
+    this->_response = resp;
 }
 
-HttpRequest const & clientData::GetRequest() const
+std::string const & clientData::GetResponse() const
 {
-    return _request;
+    return _response;
 }
 
 serverData clientData::GetServerData() const

@@ -322,8 +322,11 @@ std::string HttpResponse::generateHeader(unsigned int const &status_code, unsign
     std::string header;
     header += generateStartLine(status_code) + CRLF_Combination;
     header += "Content-Type: " + content_type + CRLF_Combination;
-    header += "Connection: keep-alive" + CRLF_Combination;
+    // header += "Connection: close" + CRLF_Combination;
+    // header += "Keep-Alive: timeout=1, max=10000" + CRLF_Combination;
+    // (void)body_lenght;
     header += "Content-Lenght: " + std::to_string(body_lenght) + CRLF_Combination;
+    // header += "Content-Lenght: 0" + CRLF_Combination;
     header += "Server: " + __server;
     return header;
 }
@@ -442,36 +445,42 @@ std::string HttpResponse::ResponseOK() const
 
 std::string const HttpResponse::ResponseBadRequest() const
 {
+    std::cout << "Bad Request response has been issued\n";
     std::string const body = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>400 Bad Request</title> \r\n</head> \r\n<body>\r\n<center><h1>400 Bad Request</h1></center>\r\n<hr><center><p>webserv/1.0</p></center>\r\n</body>\r\n</html>\r\n";
     std::string const header = "HTTP/1.1 400 Bad Request" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8" + CRLF_Combination + "Content-Length: " + std::to_string(body.length()) + CRLF_Combination + "Connection: Closed" + CRLF_Combination + "Server: webserv/1.0" + CRLF_Combination + "Date: " + getLocalTime();
     return (header + CRLF_Combination + CRLF_Combination + body);
 }
 std::string const HttpResponse::ResponseForbidden() const
 {
+    std::cout << "Response forbidden has been issued\n";
     std::string const body = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>403 Forbidden</title> \r\n</head> \r\n<body>\r\n<center><h1>403 Forbidden</h1></center>\r\n<hr><center><p>webserv/1.0</p></center>\r\n</body>\r\n</html>\r\n";
     std::string const header = "HTTP/1.1 403 Forbidden" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8" + CRLF_Combination + "Content-Length: " + std::to_string(body.length()) + CRLF_Combination + "Connection: Closed" + CRLF_Combination + "Server: webserv/1.0" + CRLF_Combination + "Date: " + getLocalTime();
     return (header + CRLF_Combination + CRLF_Combination + body);
 }
 std::string const HttpResponse::ResponseNotFound() const
 {
+    std::cout << "response not found has been issued\n";
     std::string const body = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>404 Not Found</title> \r\n</head> \r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center><p>webserv/1.0</p></center>\r\n</body>\r\n</html>\r\n";
     std::string const header = "HTTP/1.1 404 Not Found" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8" + CRLF_Combination + "Content-Length: " + std::to_string(body.length()) + CRLF_Combination + "Connection: Closed" + CRLF_Combination + "Server: webserv/1.0" + CRLF_Combination + "Date: " + getLocalTime();
     return (header + CRLF_Combination + CRLF_Combination + body);
 }
 std::string const HttpResponse::ResponseMethodNotAllowed() const
 {
+    std::cout << "response not allowed has been issued\n";
     std::string const body = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>405 Method Not Allowed</title> \r\n</head> \r\n<body>\r\n<center><h1>405 Method Not Allowed</h1></center>\r\n<hr><center><p>webserv/1.0</p></center>\r\n</body>\r\n</html>\r\n";
     std::string const header = "HTTP/1.1 405 Method Not Allowed" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8" + CRLF_Combination + "Content-Length: " + std::to_string(body.length()) + CRLF_Combination + "Connection: Closed" + CRLF_Combination + "Server: webserv/1.0" + CRLF_Combination + "Date: " + getLocalTime();
     return (header + CRLF_Combination + CRLF_Combination + body);
 }
 std::string const HttpResponse::ResponseHttpVersionNotSupported() const
 {
+    std::cout << "version not supported has been issued\n";
     std::string const body = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>505 HTTP Version Not Supported</title> \r\n</head> \r\n<body>\r\n<center><h1>505 HTTP Version Not Supported</h1></center>\r\n<hr><center><p>webserv/1.0</p></center>\r\n</body>\r\n</html>\r\n";
     std::string const header = "HTTP/1.1 505 HTTP Version Not Supported" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8" + CRLF_Combination + "Content-Length: " + std::to_string(body.length()) + CRLF_Combination + "Connection: Closed" + CRLF_Combination + "Server: webserv/1.0" + CRLF_Combination + "Date: " + getLocalTime();
     return (header + CRLF_Combination + CRLF_Combination + body);
 }
 std::string const HttpResponse::ResponseServerError() const
 {
+    std::cout << "response server error has been issued\n";
     std::string const body = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>500 Internal Server Error</title> \r\n</head> \r\n<body>\r\n<center><h1>505 HTTP Version Not Supported</h1></center>\r\n<hr><center><p>webserv/1.0</p></center>\r\n</body>\r\n</html>\r\n";
     std::string const header = "HTTP/1.1 500 HTTP Version Not Supported" + CRLF_Combination + "Content-Type: text/html; charset=UTF-8" + CRLF_Combination + "Content-Length: " + std::to_string(body.length()) + CRLF_Combination + "Connection: Closed" + CRLF_Combination + "Server: webserv/1.0" + CRLF_Combination + "Date: " + getLocalTime();
     return (header + CRLF_Combination + CRLF_Combination + body);
