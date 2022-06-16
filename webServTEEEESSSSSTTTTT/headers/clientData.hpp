@@ -4,6 +4,7 @@
 #include "listeningSocket.hpp"
 #include "configParser.hpp"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 #include "serverData.hpp"
 #define MAX_BUFFER_LEN 1024
 #include <unistd.h>
@@ -20,15 +21,16 @@ private:
     int _listenSocketFd;
     size_t _maxBodySize;
     serverData _serverData;
-    HttpRequest _request;
+    // HttpResponse _response;
+    std::string _response;
     char _szBuffer[MAX_BUFFER_LEN];
 
 public:
     // Get/Set calls
     void SetTotalBytes(int n);
 
-    void SetRequest(HttpRequest const & req);
-    HttpRequest const & GetRequest() const;
+    void SetResponse(std::string const &);
+    std::string const & GetResponse() const;
 
     serverData GetServerData() const;
 

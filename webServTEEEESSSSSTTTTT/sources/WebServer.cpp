@@ -41,7 +41,7 @@ void WebServer::startServer()
                 if (_pool.isReadable(*sock_it) /* _pending.find((*sock_it).get_fd())->second == false*/)
                 {
                     acceptNewConnection(*sock_it);
-                    // std::cout << "New Accepted client socket fd: " << this->_clients.back().GetSocketFd() << std::endl;
+                    std::cout << "New Accepted client socket fd: " << this->_clients.back().GetSocketFd() << std::endl;
                     // _pool.addToWrite(*sock_it);
                     // _pending.find((*sock_it).get_fd())->second = true;
                 }
@@ -53,7 +53,7 @@ void WebServer::startServer()
             for (cln_it = _clients.begin(); cln_it != _clients.end(); ++cln_it)
             {
                 clientData & currClient = *cln_it;
-                // std::cout << "current client socket fd is: " << currClient.GetSocketFd() << std::endl;
+                std::cout << "current client socket fd is: " << currClient.GetSocketFd() << std::endl;
                 if (_pool.isReadable(currClient.GetSocket()))
                 {
                     if (this->recvRequest(cln_it) == false)
@@ -140,13 +140,21 @@ void WebServer::startServer()
                 // sleep(1);
             }
         }
+        else if (activity == 0)
+        {
+            std::list<clientData>::iterator cln_it;
+            for (cln_it = _clients.begin(); cln_it != _clients.end(); ++cln_it)
+            {
+                close((*cln_it).GetSocketFd());
+            }
+            _clients.clear();
+        }
         else if (activity < 0)
         {
             perror("select");
             sleep(1);
             // std::cerr << "select error\n";
         }
-
     }
 
     //closing the open sockets (to be implemented in the destructor for socketsPool)
@@ -160,7 +168,6 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
     // if (_pool.isWriteable(currClient.GetSocket()))
     //     return true;
     int nBytes = recv(currClient.GetSocketFd(), currClient.GetBuffer(), MAX_BUFFER_LEN, 0);
-    // int nBytes = recv(currClient.GetSocketFd(), buff, MAX_BUFFER_LEN, 0);
     if (nBytes <= 0)
     {
         if (nBytes)
@@ -173,17 +180,28 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
         return false;
     }
     currClient.GetBuffer()[nBytes] = 0;
-    // std::cout << "The following message was recieved: " << currClient.GetBuffer() << '\n';
-    currClient.SetTotalBytes(nBytes);
+    // buff[nBytes] = 0;
+    // std::cout << "The following message was recieved: " << buff << '\n';
+    std::cout << "The following message was recieved: " << currClient.GetBuffer() << '\n';
+    // currClient.SetTotalBytes(nBytes);
     currClient.SetSentBytes(0);
     // _pool.addToWrite(currClient.GetSocket());
 
-    if (this->isRequestValid(currClient))
+    // if (this->isRequestValid(currClient))
+    //
+    if (1)
     {
+        std::cout << "valid request\n";
         HttpRequest newReq;
+        // newReq.setBuffer(std::string(buff));
         newReq.setBuffer(currClient.GetStringBuffer());
         newReq.initRequest();
-        currClient.SetRequest(newReq);
+        HttpResponse resp(newReq, currClient.GetServerData());
+        std::string respString = resp.getResponse();
+        size_t respLen = respString.length();
+        currClient.SetResponse(respString);
+        currClient.SetTotalBytes(respLen);
+        _pool.addToWrite(currClient.GetSocket());
     }
     else
         return false;
@@ -194,24 +212,38 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
 bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
 {
     clientData & currClient = *cln_it;
-    // std::cout << currClient.GetSocketFd() << "is writable\n";
+    std::cout << currClient.GetSocketFd() << "is writable\n";
     int nBytes(0);
     // std::cout << "Total Bytes: " << currClient.GetTotalBytes() << std::endl;
     // std::cout << "Sent Bytes: " << currClient.GetSentBytes() << std::endl;
+    std::cout << currClient.GetTotalBytes() << ": total bytes\n";
+    std::cout << currClient.GetSentBytes() << ": send bytes\n";
     if (currClient.GetTotalBytes() > currClient.GetSentBytes())
     {
-        HttpResponse resp(currClient.GetRequest(), currClient.GetServerData());
-        std::string respString = resp.getResponse();
-        size_t respLen = respString.length();
-        nBytes = send(currClient.GetSocketFd(),
-                    respString.c_str(),
-                    respLen, 0);
+        // HttpResponse resp(currClient.GetRequest(), currClient.GetServerData());
+        // std::string respString = resp.getResponse();
+        // size_t respLen = respString.length();
+        if (currClient.GetResponse().find("Connection: closed") != std::string::npos)
+        {
+            std::cout << "response containing closed connection\n";
+        }
+        std::cout << "sending\n";
+        // nBytes = send(currClient.GetSocketFd(),
+        //             currClient.GetResponse().substr(currClient.GetSentBytes()).c_str(),
+        //             currClient.GetTotalBytes() - currClient.GetSentBytes(), 0);
+        nBytes = write(currClient.GetSocketFd(),
+                    currClient.GetResponse().substr(currClient.GetSentBytes()).c_str(),
+                    currClient.GetTotalBytes() - currClient.GetSentBytes());
+        std::cout << currClient.GetTotalBytes() << ": total bytes\n";
+        std::cout << nBytes << ": nBytes\n";
+        // nBytes = send(currClient.GetSocketFd(),
+        //             (respString.substr(currClient.GetSentBytes())).c_str(),
+        //             600, 0);
         // nBytes = write(currClient.GetSocketFd(), HELLO, strlen(HELLO));
         // nBytes = send(currClient.GetSocketFd(),
         //             HELLO,
         //             MAX_BUFFER_LEN, 0);
-        // std::cout << "message send:\n";
-        // std::cout << respString.substr(0, 200) << "\n";
+        std::cout << "message send:\n";
         if (nBytes < 0)
         {
             std::cerr << "Couldnt's send data\n";
@@ -220,22 +252,30 @@ bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
         }
         // _pending.find(currClient.GetListenFd())->second = false;
 
-
+/*
         close(currClient.GetSocketFd());
         // std::cout << currClient.GetSocketFd() << " is closed\n";
         _pool.removeFromRead(currClient.GetSocket());
         _pool.removeFromWrite(currClient.GetSocket());
         // _clients.erase(cln_it);
         return false;
+*/      if (currClient.GetStringBuffer().find("Connection: close") != std::string::npos)
+        {
+            close(currClient.GetSocketFd());
+            return false;
+        }
 
         // continue;
-        // if (nBytes == currClient.GetTotalBytes() - currClient.GetSentBytes())
-        // {
-        //     currClient.SetTotalBytes(0);
-        //     currClient.SetSentBytes(0);
-        // }
-        // else
-        //     currClient.IncrSentBytes(nBytes);
+        if (nBytes == currClient.GetTotalBytes() - currClient.GetSentBytes())
+        {
+            currClient.SetTotalBytes(0);
+            currClient.SetSentBytes(0);
+        }
+        else
+            currClient.IncrSentBytes(nBytes);
+                    std::cout << currClient.GetTotalBytes() << ": total bytes\n";
+        std::cout << currClient.GetSentBytes() << ": sent bytes\n";
+        
         // close(currClient.GetSocketFd());
         // _pool.removeFromRead(currClient.GetSocket());
     }
@@ -282,7 +322,7 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
     acceptedSockObj.set_fd(acceptedSocket);
     acceptedSockObj.set_address(clientAddress);
     acceptedSockObj.set_len(addrlen);
-    // std::cout << "accepted socket: " << acceptedSockObj.get_fd() << '\n';
+    std::cout << "accepted socket: " << acceptedSockObj.get_fd() << '\n';
 
     for(std::vector<serverData>::iterator iter = this->_serverVect.begin();
         iter != this->_serverVect.end();
@@ -297,7 +337,7 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
 				if (*port_it == ntohs(sock.get_address().sin_port))
 				{
                     this->_clients.push_back(clientData(acceptedSockObj, sock, *iter));
-                    // std::cout << "New Client Added to clients list\n";
+                    std::cout << "New Client Added to clients list\n";
                     // _pool.addToRead(acceptedSockObj);
 					break;
 				}
@@ -316,6 +356,7 @@ bool WebServer::isRequestValid(clientData const & client)
     std::string buffer = client.GetStringBuffer();
 	if (buffer.find(D_CRLF) != std::string::npos)
 	{
+        // this->_isRequestComplete = true;
 		std::string reqHeaders = buffer.substr(0, buffer.find(D_CRLF) + 4);
 		if (reqHeaders.find("Transfer-Encoding: chunked") != std::string::npos)
 		{
@@ -337,6 +378,7 @@ bool WebServer::isRequestValid(clientData const & client)
 		}
 		return true;
 	}
+
 	return false;
 }
 
