@@ -1,5 +1,4 @@
 #include "../headers/WebServer.hpp"
-#define HELLO "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"
 #include "../headers/HttpRequest.hpp"
 #include "../headers/HttpResponse.hpp"
 
@@ -12,16 +11,14 @@ WebServer::WebServer(configParser const &parseData)
     {
         std::set<int> ports = (*it).getPorts();
         std::list<listeningSocket> sockets;
-        for (std::set<int>::iterator it = ports.begin(); it != ports.end(); it++)
+        for (std::set<int>::iterator ports_it = ports.begin(); ports_it != ports.end(); ports_it++)
         {
-            listeningSocket sock(AF_INET, SOCK_STREAM, *it);
+            listeningSocket sock(AF_INET, SOCK_STREAM, *ports_it);
             sockets.push_back(sock);
             _listenSockets.push_back(sock);
-            // _pending.insert(std::make_pair(sock.get_fd(), false));
-            std::cout << "listening socket created: " << _listenSockets.back().get_fd() << std::endl;
+            std::cout << "listening socket created with fd: " << _listenSockets.back().get_fd() << " bound to host " << (*it).getHost() << ':' << (*ports_it) << std::endl;
         }
         this->_hostSockets.insert(std::make_pair((*it).getHost(), sockets));
-        // this->_hostMaxClientSize.insert(std::make_pair((*it).getHost(), (*it).getClientMaxBodySize()));
     }
     this->startServer();
 }
@@ -100,16 +97,12 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
     std::cout << "Received Bytes: " << nBytes << '\n';
     currClient.AppendToRequest(buff, nBytes);
     std::cout << "Received Message:\n"<< currClient.GetRequest() << std::endl;
-
-    // currClient.SetSentBytes(0);
-
     if (this->isRequestValid(currClient))
     {
         if (currClient.IsChunked() == true)
             currClient.SetRequest(this->chunkedRequest(currClient));
         std::cout << "valid request\n";
         HttpRequest newReq;
-        // newReq.setBuffer(std::string(buff));
         newReq.setBuffer(currClient.GetRequest());
         newReq.initRequest();
         HttpResponse resp(newReq, currClient.GetServerData());
@@ -131,9 +124,6 @@ bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
     std::cout << currClient.GetSentBytes() << ": send bytes\n";
     if (currClient.GetTotalBytes() > currClient.GetSentBytes())
     {
-        // HttpResponse resp(currClient.GetRequest(), currClient.GetServerData());
-        // std::string respString = resp.getResponse();
-        // size_t respLen = respString.length();
         std::cout << "response header: " << currClient.GetResponse().substr(0, 117) << '\n';
         std::cout << "sending\n";
         nBytes = send(currClient.GetSocketFd(),
@@ -141,37 +131,23 @@ bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
                     currClient.GetTotalBytes() - currClient.GetSentBytes(), 0);
         std::cout << currClient.GetTotalBytes() << ": total bytes\n";
         std::cout << nBytes << ": nBytes\n";
-        // nBytes = send(currClient.GetSocketFd(),
-        //             (respString.substr(currClient.GetSentBytes())).c_str(),
-        //             600, 0);
-        // nBytes = write(currClient.GetSocketFd(), HELLO, strlen(HELLO));
-        // nBytes = send(currClient.GetSocketFd(),
-        //             HELLO,
-        //             MAX_BUFFER_LEN, 0);
         std::cout << "message send:\n";
         if (nBytes < 0)
         {
             std::cerr << "Couldnt's send data\n";
-            // _clients.erase(cln_it);
             return false;
         }
-        // _pending.find(currClient.GetListenFd())->second = false;
-
-
         close(currClient.GetSocketFd());
-        // std::cout << currClient.GetSocketFd() << " is closed\n";
         _pool.removeFromRead(currClient.GetSocket());
         _pool.removeFromWrite(currClient.GetSocket());
-        // _clients.erase(cln_it);
         return false;
 
+        //persistence
         if (currClient.GetRequest().find("Connection: close") != std::string::npos)
         {
             close(currClient.GetSocketFd());
             return false;
         }
-
-        // continue;
         if (nBytes == currClient.GetTotalBytes() - currClient.GetSentBytes())
         {
             currClient.SetTotalBytes(0);
@@ -181,10 +157,6 @@ bool WebServer::sendResponse(std::list<clientData>::iterator const & cln_it)
         else
             currClient.IncrSentBytes(nBytes);
                     std::cout << currClient.GetTotalBytes() << ": total bytes\n";
-        // std::cout << currClient.GetSentBytes() << ": sent bytes\n";
-        
-        // close(currClient.GetSocketFd());
-        // _pool.removeFromRead(currClient.GetSocket());
     }
     return true;
 }
@@ -194,9 +166,9 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
     sockaddr_in clientAddress;
     size_t addrlen = sizeof(clientAddress);
     int acceptedSocket = accept(sock.get_fd(), (struct sockaddr *)&clientAddress, (socklen_t *)&addrlen);
-    // std::cout << acceptedSocket << "\n";
     if (acceptedSocket < 0)
         throw std::runtime_error("Counldn't accept connection");
+    std::cout << "New connection established through listening socket: " << sock.get_fd() << ", with accepted fd: " << acceptedSocket << ", Address/port: " << inet_ntoa(clientAddress.sin_addr) << ':' << clientAddress.sin_port << '\n';
     if (fcntl(acceptedSocket, F_SETFL, O_NONBLOCK) < 0)
         throw std::runtime_error("Couldn't make accepted socket non blocking");
     wsv::Socket acceptedSockObj;
@@ -209,10 +181,8 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
         iter != this->_serverVect.end();
         iter++)
 	{
-        std::cout << iter->getHost() << '\n';
 		if (iter->getHost() == "0.0.0.0" || iter->getHost() == inet_ntoa(clientAddress.sin_addr))
 		{
-            // std::cout << "Host found\n";
 			std::set<int> ports = iter->getPorts();
 			for(std::set<int>::iterator port_it = ports.begin(); port_it != ports.end(); port_it++)
 			{
@@ -220,13 +190,11 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
 				{
                     this->_clients.push_back(clientData(acceptedSockObj, sock, *iter));
                     std::cout << "New Client Added to clients list\n";
-                    // _pool.addToRead(acceptedSockObj);
 					break;
 				}
 			}
 		}
 	}
-    // acceptedObj.set_fd(acceptedSocket);
 }
 
 bool WebServer::isRequestValid(clientData & client)
@@ -237,8 +205,6 @@ bool WebServer::isRequestValid(clientData & client)
 		std::string reqHeaders = buffer.substr(0, buffer.find(D_CRLF) + 4);
 		if (reqHeaders.find("Transfer-Encoding: chunked") != std::string::npos)
 		{
-			// this->_chunkedReq_ = true;
-            std::cout << "Chunked\n";
             client.SetChunkedValue(true);
 			if (buffer.find(LAST_CHUNK) != std::string::npos)
 				return true;
@@ -256,7 +222,6 @@ bool WebServer::isRequestValid(clientData & client)
 		}
 		return true;
 	}
-
 	return false;
 }
 
