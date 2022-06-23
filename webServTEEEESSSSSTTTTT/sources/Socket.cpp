@@ -28,13 +28,6 @@ wsv::Socket const & wsv::Socket::operator=(wsv::Socket const & rhs)
     if (this != &rhs)
     {
         this->_fd = rhs._fd;
-
-        // this->_address.sin_addr.s_addr = rhs._address.sin_addr.s_addr;
-        // this->_address.sin_family = rhs._address.sin_family;
-        // this->_address.sin_len = rhs._address.sin_len;
-        // this->_address.sin_port = rhs._address.sin_port;
-        // memmove(&this->_address.sin_zero, &rhs._address.sin_zero, 8);
-
         memmove(&_address, &rhs._address, sizeof(_address));
 
         this->_addrlen = rhs._addrlen;

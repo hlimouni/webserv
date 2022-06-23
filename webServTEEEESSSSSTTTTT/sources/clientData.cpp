@@ -64,12 +64,7 @@ size_t clientData::GetMaxBodySize() const
 {
     return _maxBodySize;
 }
-// Constructor
-// clientData::clientData(int acceptedSocketfd) : _totalBytes(0), _sentBytes(0)
-// {
-//     _acceptedSocketFd = acceptedSocketfd;
-//     bzero(_szBuffer, MAX_BUFFER_LEN);
-// }
+
 clientData::clientData(wsv::Socket const & sock) : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock), _isChunked(false)
 {
     
@@ -141,5 +136,4 @@ bool clientData::IsChunked() const
 // destructor
 clientData::~clientData()
 {
-    // close(_acceptedSocketFd);
 }
