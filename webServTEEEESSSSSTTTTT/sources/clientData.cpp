@@ -70,7 +70,7 @@ size_t clientData::GetMaxBodySize() const
 //     _acceptedSocketFd = acceptedSocketfd;
 //     bzero(_szBuffer, MAX_BUFFER_LEN);
 // }
-clientData::clientData(wsv::Socket const & sock) : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock)
+clientData::clientData(wsv::Socket const & sock) : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock), _isChunked(false)
 {
     
     _acceptedSocketFd = sock.get_fd();
@@ -78,7 +78,7 @@ clientData::clientData(wsv::Socket const & sock) : _totalBytes(0), _sentBytes(0)
 }
 
 clientData::clientData(wsv::Socket const & sock, wsv::Socket const & lstn)
-    : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock), _listenSocketFd(lstn.get_fd())
+    : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock), _listenSocketFd(lstn.get_fd()), _isChunked(false)
 {
     
     _acceptedSocketFd = sock.get_fd();
@@ -86,7 +86,7 @@ clientData::clientData(wsv::Socket const & sock, wsv::Socket const & lstn)
 }
 
 clientData::clientData(wsv::Socket const & sock, wsv::Socket const & lstn, serverData & data)
-    : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock), _listenSocketFd(lstn.get_fd()), _serverData(data)
+    : _totalBytes(0), _sentBytes(0), _acceptedSocket(sock), _listenSocketFd(lstn.get_fd()), _serverData(data), _isChunked(false)
 {
     _maxBodySize = data.getClientMaxBodySize() * 1024 * 1024;
     _acceptedSocketFd = sock.get_fd();
@@ -108,9 +108,34 @@ std::string const & clientData::GetResponse() const
     return _response;
 }
 
+void clientData::SetRequest(std::string const & req)
+{
+    this->_request = req;
+}
+
+void clientData::AppendToRequest(char *str, int size)
+{
+    this->_request.append(str, size);
+}
+
+std::string const & clientData::GetRequest() const
+{
+    return this->_request;
+}
+
 serverData clientData::GetServerData() const
 {
     return _serverData;
+}
+
+void clientData::SetChunkedValue(bool value)
+{
+    this->_isChunked = value;
+}
+
+bool clientData::IsChunked() const
+{
+    return _isChunked;
 }
 
 // destructor

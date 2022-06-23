@@ -81,7 +81,7 @@ void SocketsPool::initSets(std::set<listeningSocket> listenSockets, std::list<cl
 int SocketsPool::checkActivity()
 {
     int activity = select(getMaxFd() + 1, &_readFds, &_writeFds, &_exepFds,
-                    &this->_timeout);
+                    &this->_timeout0);
     return activity;
 }
 

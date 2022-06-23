@@ -6,6 +6,7 @@
 #include "../headers/configParser.hpp"
 #include "../headers/clientData.hpp"
 #include <arpa/inet.h>
+#include <sys/poll.h>
 #include <netinet/tcp.h>
 #include <set>
 #include <list>
@@ -38,7 +39,9 @@ public:
     void acceptNewConnection(listeningSocket const & sock);
     bool recvRequest(std::list<clientData>::iterator const & cln_it);
     bool sendResponse(std::list<clientData>::iterator const & cln_it);
-    bool isRequestValid(clientData const & client);
+    bool isRequestValid(clientData & client);
+    std::string const chunkedRequest(clientData & client);
+    size_t getChunkSize(std::string & line);
 };
 
 #endif

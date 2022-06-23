@@ -189,7 +189,7 @@ void HttpResponse::init_response()
     CRLF_Combination = std::string(CRLF);
     __http = "HTTP/1.1";
     __statusDesciption = "";
-    __connection = "keep-alive";
+    __connection = "";
     __contentLength = "150";
     __contentType = "text/html";
     __Date = "";
@@ -322,11 +322,7 @@ std::string HttpResponse::generateHeader(unsigned int const &status_code, unsign
     std::string header;
     header += generateStartLine(status_code) + CRLF_Combination;
     header += "Content-Type: " + content_type + CRLF_Combination;
-    // header += "Connection: close" + CRLF_Combination;
-    // header += "Keep-Alive: timeout=1, max=10000" + CRLF_Combination;
-    // (void)body_lenght;
     header += "Content-Lenght: " + std::to_string(body_lenght) + CRLF_Combination;
-    // header += "Content-Lenght: 0" + CRLF_Combination;
     header += "Server: " + __server;
     return header;
 }
