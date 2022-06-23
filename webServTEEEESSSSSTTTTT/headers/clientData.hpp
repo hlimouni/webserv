@@ -21,7 +21,8 @@ private:
     int _listenSocketFd;
     size_t _maxBodySize;
     serverData _serverData;
-    // HttpResponse _response;
+    bool _isChunked;
+    std::string _request;
     std::string _response;
     char _szBuffer[MAX_BUFFER_LEN];
 
@@ -29,8 +30,15 @@ public:
     // Get/Set calls
     void SetTotalBytes(int n);
 
+    void SetRequest(std::string const &);
+    void AppendToRequest(char *str, int bytes);
+    std::string const & GetRequest() const;
+
     void SetResponse(std::string const &);
     std::string const & GetResponse() const;
+
+    void SetChunkedValue(bool value);
+    bool IsChunked() const;
 
     serverData GetServerData() const;
 

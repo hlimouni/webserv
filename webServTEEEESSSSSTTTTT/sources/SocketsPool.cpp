@@ -80,10 +80,10 @@ void SocketsPool::initSets(std::list<listeningSocket> listenSockets, std::list<c
     }
     for (std::list<clientData>::iterator it_client = clients.begin(); it_client != clients.end(); it_client++)
     {
-        // if ((*it_client).GetSentBytes() < (*it_client).GetTotalBytes())
+        if ((*it_client).GetSentBytes() < (*it_client).GetTotalBytes())
             // FD_SET((*it_client).GetSocketFd(), &_writeFds);
             addToWrite((*it_client).GetSocket());
-        // else
+        else
             // FD_SET((*it_client).GetSocketFd(), &_readFds);
 			addToRead((*it_client).GetSocket());
         // FD_SET((*it_client).GetSocketFd(), &_exepFds);
@@ -97,7 +97,7 @@ int SocketsPool::checkActivity()
     _timeout = (struct timeval){.tv_sec = 1, .tv_usec = 0};
 
     int activity = select(getMaxFd() + 1, &_readFds, &_writeFds, &_exepFds,
-                    &_timeout);
+                    0);
     std::cout << "after select\n";
     return activity;
 }
