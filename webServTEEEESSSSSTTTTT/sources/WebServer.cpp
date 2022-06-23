@@ -48,27 +48,49 @@ void WebServer::startServer()
             {
                 clientData & currClient = *cln_it;
                 std::cout << "current client socket fd is: " << currClient.GetSocketFd() << std::endl;
-                if (_pool.isReadable(currClient.GetSocket()))
+                if (_pool.isReadable(currClient.GetSocket()) && _pool.isWriteable(currClient.GetSocket()))
                 {
+                    std::cout << "socket is readable and writable\n";
                     if (this->recvRequest(cln_it) == false)
                     {
+                        std::cout << "error in recv\n";
                         _clients.erase(cln_it);
                         continue;
                     }
-                }
-                if (_pool.isWriteable(currClient.GetSocket()))
-                {
                     if (this->sendResponse(cln_it) == false)
                     {
+                        std::cout << "error in send\n";
                          _clients.erase(cln_it);
                          continue;
                     }
                 }
+                // else if (_pool.isWriteable(currClient.GetSocket()))
+                // {
+                //     _clients.erase(cln_it);
+                //     continue;
+                // }
+                // if (_pool.isReadable(currClient.GetSocket()))
+                // {
+                //     if (this->recvRequest(cln_it) == false)
+                //     {
+                //         _clients.erase(cln_it);
+                //         continue;
+                //     }
+                // }
+                // if (_pool.isWriteable(currClient.GetSocket()))
+                // {
+                //     if (this->sendResponse(cln_it) == false)
+                //     {
+                //          _clients.erase(cln_it);
+                //          continue;
+                //     }
+                // }
                 if (_pool.isExepted(currClient.GetSocket()))
                 {
                     std::cerr << "Error on socket\n";
                     _clients.erase(cln_it);
                 }
+                sleep(1);
             }
         }
         else if (activity < 0)
@@ -89,7 +111,7 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
     {
         if (nBytes)
         {
-            perror("recv");
+            std::cerr << "couldn't receive data from client\n";
         }
         return false;
     }
@@ -110,7 +132,7 @@ bool WebServer::recvRequest(std::list<clientData>::iterator const & cln_it)
         size_t respLen = respString.length();
         currClient.SetResponse(respString);
         currClient.SetTotalBytes(respLen);
-        _pool.addToWrite(currClient.GetSocket());
+        // _pool.addToWrite(currClient.GetSocket());
     }
     return true;
 }
@@ -181,7 +203,7 @@ void WebServer::acceptNewConnection(listeningSocket const & sock)
         iter != this->_serverVect.end();
         iter++)
 	{
-		if (iter->getHost() == "0.0.0.0" || iter->getHost() == inet_ntoa(clientAddress.sin_addr))
+		if (/*iter->getHost() == "0.0.0.0" || */ iter->getHost() == inet_ntoa(clientAddress.sin_addr))
 		{
 			std::set<int> ports = iter->getPorts();
 			for(std::set<int>::iterator port_it = ports.begin(); port_it != ports.end(); port_it++)
@@ -214,7 +236,7 @@ bool WebServer::isRequestValid(clientData & client)
 		{
 			size_t bodySize = std::stoi(reqHeaders.substr((int)(reqHeaders.find("Content-Length: ")) + 16));
 			std::string reqBody = buffer.substr(buffer.find(D_CRLF) + 4);
-	
+            
 			if (bodySize > client.GetMaxBodySize())
 				return true;
 			else if (reqBody.length() < bodySize)

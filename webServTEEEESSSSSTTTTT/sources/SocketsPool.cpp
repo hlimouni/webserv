@@ -33,19 +33,25 @@ int SocketsPool::getMaxFd() const
 
 bool SocketsPool::isReadable(wsv::Socket const & sock)
 {
+    std::cout << "checking readability of " << sock.get_fd() << std::endl;
     if (FD_ISSET(sock.get_fd(), &this->_readFds))
     {
+        std::cout << "it is readable\n";
         return true;
     }
+    std::cout << "not redable\n";
     return false;
 }
 
 bool SocketsPool::isWriteable(wsv::Socket const & sock)
 {
+    std::cout << "checking writablity of " << sock.get_fd() << std::endl;
     if (FD_ISSET(sock.get_fd(), &this->_writeFds))
     {
+        std::cout << "it is writable\n";
         return true;
     }
+    std::cout << "not writable\n";
     return false;
 }
 
@@ -70,10 +76,12 @@ void SocketsPool::initSets(std::list<listeningSocket> listenSockets, std::list<c
     }
     for (std::list<clientData>::iterator it_client = clients.begin(); it_client != clients.end(); it_client++)
     {
-        if ((*it_client).GetSentBytes() < (*it_client).GetTotalBytes())
-            addToWrite((*it_client).GetSocket());
-        else
-			addToRead((*it_client).GetSocket());
+		addToRead((*it_client).GetSocket());
+        addToWrite((*it_client).GetSocket());
+        // if ((*it_client).GetSentBytes() < (*it_client).GetTotalBytes())
+        //     addToWrite((*it_client).GetSocket());
+        // else
+		// 	addToRead((*it_client).GetSocket());
 		addToExept((*it_client).GetSocket());
     }
 }
