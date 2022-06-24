@@ -1,5 +1,4 @@
 
-#include "../headers/_UltimateHeader_.hpp"
 #include "../headers/WebServer.hpp"
 
 int main(int argc, char **argv)
@@ -9,7 +8,6 @@ int main(int argc, char **argv)
 		try
 		{
 			configParser config(argv[1]);
-			// webServer	ws(config);
 			WebServer	ws(config);
 		}
 		catch(const std::exception& e)
