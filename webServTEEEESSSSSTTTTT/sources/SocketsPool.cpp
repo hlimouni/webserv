@@ -33,25 +33,25 @@ int SocketsPool::getMaxFd() const
 
 bool SocketsPool::isReadable(wsv::Socket const & sock)
 {
-    std::cout << "checking readability of " << sock.get_fd() << std::endl;
+    // std::cout << "checking readability of " << sock.get_fd() << std::endl;
     if (FD_ISSET(sock.get_fd(), &this->_readFds))
     {
-        std::cout << "it is readable\n";
+        // std::cout << "it is readable\n";
         return true;
     }
-    std::cout << "not redable\n";
+    // std::cout << "not redable\n";
     return false;
 }
 
 bool SocketsPool::isWriteable(wsv::Socket const & sock)
 {
-    std::cout << "checking writablity of " << sock.get_fd() << std::endl;
+    // std::cout << "checking writablity of " << sock.get_fd() << std::endl;
     if (FD_ISSET(sock.get_fd(), &this->_writeFds))
     {
-        std::cout << "it is writable\n";
+        // std::cout << "it is writable\n";
         return true;
     }
-    std::cout << "not writable\n";
+    // std::cout << "not writable\n";
     return false;
 }
 
